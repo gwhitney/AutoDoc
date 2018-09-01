@@ -103,7 +103,9 @@ NotFunctional@ := function( item, declarator )
               declarator );
     fi;
     item!.arguments := fail;
-    if IsBound( item!.return_value ) and item!.return_value <> false then
+    if IsBound( item!.return_value ) and
+       item!.return_value <> false and
+       item!.return_value <> [ ] then
         Info( InfoWarning, 1, "Ignoring @Returns for item defined by ",
               declarator );
     fi;
@@ -614,8 +616,8 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         od;
         return example_node;
     end;
-    read_session_example := function( is_tested_example, pt_mode )
-        local temp_string_list, temp_curr_line, temp_pos_comment, is_following_line, item_temp, example_node, incorporate_this_line;
+    read_session_example := function( is_tested_example, pt_mode, ei_prefix )
+        local temp_string_list, temp_curr_line, temp_pos_comment, is_following_line, item_temp, example_node, incorporate_this_line, line_parts;
         example_node := DocumentationExample( tree );
         if is_tested_example = false then
             example_node!.is_tested_example := false;
@@ -624,10 +626,7 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         fi;
         temp_string_list := example_node!.content;
         while true do
-            temp_curr_line := ReadLineWithLineCount( filestream );
-            if temp_curr_line[ Length( temp_curr_line )] = '\n' then
-                temp_curr_line := temp_curr_line{[ 1 .. Length( temp_curr_line ) - 1 ]};
-            fi;
+            temp_curr_line := Chomp( ReadLineWithLineCount( filestream ) );
             if filestream = fail or ( is_tested_example and PositionSublist( temp_curr_line, "@EndExampleSession" ) <> fail )
                                  or ( not is_tested_example and PositionSublist( temp_curr_line, "@EndLogSession" ) <> fail ) then
                 break;
@@ -642,6 +641,12 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
                     if Length( temp_curr_line ) >= 1 and temp_curr_line[ 1 ] = ' ' then
                         Remove( temp_curr_line, 1 );
                     fi;
+                fi;
+            fi;
+            if incorporate_this_line and IsString( ei_prefix ) then
+                line_parts := SplitString( temp_curr_line, "", " \t" );
+                if Length(line_parts) > 0 and line_parts[1] = ei_prefix then
+                    incorporate_this_line := false;
                 fi;
             fi;
             if incorporate_this_line then
@@ -1191,7 +1196,7 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         end,
         @Example := ~.@BeginExample,
         #! @Subsection @BeginExampleSession
-        #! @SubsectionTitle @BeginExampleSession and @EndExampleSession
+        #! @SubsectionTitle @BeginExampleSession <A>[ignore]</A> and @EndExampleSession
         #! @Index @BeginExampleSession `@BeginExampleSession / @EndExampleSession`
         #!    `@BeginExampleSession` inserts an example into the manual, but
         #!    in a different syntax. To understand the motivation, consider
@@ -1225,11 +1230,25 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         #!    examples are correctly colored in the manual, there should be
         #!    exactly one space between `#!` and the `gap>` prompt.
         #!
+        #!    If the optional argument <A>ignore</A> to `@BeginExampleSession`
+        #!    is present (delimited by whitespace), then any lines in the
+        #!    session transcript beginning with exactly those characters in
+        #!    <A>ignore</A> (again, delimited by whitespace) are ignored and
+        #!    not passed through to the manual or to tests.
+        #!
         #!    The &AutoDoc; command `@ExampleSession` is an alias of
         #!    `@BeginExampleSession`.
         @BeginExampleSession := function()
-            local example_node;
-            example_node := read_session_example( true, plain_text_mode );
+            local example_node, arg_parts, extra_ignored_prefix;
+            extra_ignored_prefix := false;
+            arg_parts := SplitString(current_command[2], "", " \t");
+            if Length(arg_parts) > 0 then
+                extra_ignored_prefix := arg_parts[1];
+            fi;
+            example_node :=
+              read_session_example(
+                PositionSublist(current_command[1], "xample") <> fail,
+                plain_text_mode, extra_ignored_prefix );
             Add( PeekNode(), example_node );
         end,
         @ExampleSession := ~.@BeginExampleSession,
@@ -1254,12 +1273,8 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         #!    tested if manual examples are run. See
         #!    the &GAPDoc; manual for more information. The &AutoDoc;
         #!    command `@LogSession` is an alias for `@BeginLogSession`.
-        @BeginLogSession := function()
-            local example_node;
-            example_node := read_session_example( false, plain_text_mode );
-            Add( PeekNode(), example_node );
-        end,
-        @LogSession := ~.@BeginLogSession,
+        @BeginLogSession := ~.@BeginExampleSession,
+        @LogSession := ~.@BeginExampleSession,
         #! @Subsection @DoNotReadRestOfFile
         #! @Index @DoNotReadRestOfFile `@DoNotReadRestOfFile`
         #!    Prevents the rest of the file from being read by the

@@ -560,7 +560,7 @@ The &AutoDoc; command <C>@Example</C> is an alias of <C>@BeginExample</C>.
 
 
 <Subsection Label="Chapter_Comments_Section_Others_Subsection_BeginExampleSession">
-<Heading>@BeginExampleSession and @EndExampleSession</Heading>
+<Heading>@BeginExampleSession <A>[ignore]</A> and @EndExampleSession</Heading>
 
 <Index Key="@BeginExampleSession"><C>@BeginExampleSession / @EndExampleSession</C>
 </Index>
@@ -600,6 +600,12 @@ following character is a space, this space will also be
 removed. There is never more than one space removed. To ensure
 examples are correctly colored in the manual, there should be
 exactly one space between <C>#!</C> and the <C>gap></C> prompt.
+<P/>
+If the optional argument <A>ignore</A> to <C>@BeginExampleSession</C>
+is present (delimited by whitespace), then any lines in the
+session transcript beginning with exactly those characters in
+<A>ignore</A> (again, delimited by whitespace) are ignored and
+not passed through to the manual or to tests.
 <P/>
 The &AutoDoc; command <C>@ExampleSession</C> is an alias of
 <C>@BeginExampleSession</C>.
