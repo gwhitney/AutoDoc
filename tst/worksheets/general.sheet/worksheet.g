@@ -21,3 +21,10 @@ Print( "(Even though we never use it that way.\n" );
 #! 120
 #! @EndExampleSession
 #! And we wrap up with some dummy text
+#! @Section Some categories
+#!  Intro text
+DeclareCategory("MyThings", IsObject);
+DeclareCategoryCollections("MyThings");
+Now here is some text with a bunch of &!$%*!/ weird things in it. But that
+should be OK, nothing should end up in a weird place.
+#! Let's wrap up with something, though.
