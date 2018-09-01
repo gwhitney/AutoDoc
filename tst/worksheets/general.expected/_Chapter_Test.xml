@@ -38,6 +38,19 @@ Intro text
 </ManSection>
 
 
+<ManSection Label="Group1">
+<Heading>A family of operations</Heading>
+  <Oper Arg="order" Name="FirstOperation" Label="for IsInt"/>
+  <Oper Arg="order, ambient_group" Name="SecondOperation" Label="for IsInt, IsGroup"/>
+  <Oper Arg="arg1,arg2" Name="ThirdOperation" Label="for IsGroup, IsInt"/>
+ <Description>
+First sentence.
+Second sentence.
+Third sentence.
+ </Description>
+</ManSection>
+
+
 Let's wrap up with something, though.
 </Section>
 

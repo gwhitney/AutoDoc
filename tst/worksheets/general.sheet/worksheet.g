@@ -27,4 +27,25 @@ DeclareCategory("MyThings", IsObject);
 DeclareCategoryCollections("MyThings");
 Now here is some text with a bunch of &!$%*!/ weird things in it. But that
 should be OK, nothing should end up in a weird place.
+#! @BeginGroup Group1
+#! @GroupTitle A family of operations
+#! @GroupInitialArguments order
+
+#! @Description
+#!  First sentence.
+DeclareOperation( "FirstOperation", [ IsInt ] );
+
+#! @Description
+#!  Second sentence.
+#! @Arguments ambient_group
+DeclareOperation( "SecondOperation", [ IsInt, IsGroup ] );
+
+#! @EndGroup
+
+## .. Stuff ..
+
+#! @Description
+#!  Third sentence.
+#! @Group Group1
+KeyDependentOperation( "ThirdOperation", IsGroup, IsInt, "prime );
 #! Let's wrap up with something, though.
