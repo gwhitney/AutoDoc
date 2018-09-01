@@ -11,10 +11,9 @@
 #############################################################################
 
 autodoc_args_rec := rec(
-    autodoc := true,
+    autodoc := rec( files := [ "doc/Comments.autodoc" ] ),
     scaffold := rec(
-        includes := [ "Tutorials.xml", 
-                      "Comments.xml" ],
+        includes := [ "Tutorials.xml" ],
         bib := "bib.xml", 
         gapdoc_latex_options := rec( EarlyExtraPreamble := """
             \usepackage{a4wide} 

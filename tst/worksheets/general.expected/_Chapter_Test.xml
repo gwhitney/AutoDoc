@@ -38,6 +38,41 @@ Intro text
 </ManSection>
 
 
+</Section>
+
+
+<Section Label="Chapter_Test_Section_Extend_coverage">
+<Heading>Extend coverage</Heading>
+
+And now we can test a variety of features of <Package>AutoDoc</Package>
+which are not tested by processing the main manual.
+<ManSection>
+  <Filt Arg="obj" Name="IsMyIntersectionObj" />
+ <Description>
+This category is implemented via a DeclareSynonym.
+Yet it will show up properly
+ </Description>
+</ManSection>
+
+
+To see how this works, examine the following code
+<Listing Type="Code"><![CDATA[
+a := MyFirstObj( gens );
+if IsMySecondObj( a ) then
+   b := IsMyIntersectionObj( a );
+fi;
+### b will only ever be set to true, if it is set at all.
+]]></Listing>
+
+We can also specify the type of methods
+<ManSection>
+  <Meth Arg="arg1,arg2" Name="GeneralOp" Label="for IsAToughie, IsEvenWorse"/>
+ <Description>
+This is a special method for handling tough cases.
+ </Description>
+</ManSection>
+
+
 <ManSection Label="Group1">
 <Heading>A family of operations</Heading>
   <Oper Arg="order" Name="FirstOperation" Label="for IsInt"/>
@@ -51,7 +86,7 @@ Third sentence.
 </ManSection>
 
 
-Let's wrap up with something, though.
+The coverage of this test file could be extended further.
 </Section>
 
 

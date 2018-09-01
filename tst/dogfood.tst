@@ -30,7 +30,7 @@ gap> mdf := Filename( DirectoriesPackageLibrary( "AutoDoc", "")[ 1 ], "makedoc.g
 gap> Read(mdf);
 gap> autodoc_args_rec.dir := outdir;;
 gap> docdir := DirectoriesPackageLibrary( "AutoDoc", "doc" )[ 1 ];;
-gap> for fn in [ "Tutorials.xml", "Comments.xml", "bib.xml" ] do
+gap> for fn in [ "Tutorials.xml", "bib.xml" ] do
 > contents := ReadAll( InputTextFile( Filename( docdir, fn ) ) );
 > WriteAll( OutputTextFile( Filename( outdir, fn ), false ), contents );
 > od;
@@ -40,6 +40,15 @@ gap> AutoDoc( "AutoDoc", autodoc_args_rec);
 true
 gap> SetInfoLevel( InfoWarning, 1 );
 gap> ex_dir := Directory( Filename( tstdir, "manual.expected" ) );;
+gap> chap2 := Filename( outdir, "_Chapter_Comments.xml" );;
+gap> chap2ref := Filename( ex_dir, "_Chapter_Comments.xml" );;
+gap> chap2diffout := Filename( outdir, "chap2.diff");;
+gap> command := Concatenation( "diff -s -c ", chap2ref, " ", chap2, " > ", chap2diffout );;
+gap> Exec( command );
+gap> chap2diff := ReadAll( InputTextFile( chap2diffout ) );;
+gap> chap2good := chap2diff = Concatenation( "Files ", chap2ref, " and ", chap2, " are identical\n" );
+true
+gap> if not chap2good then Print( chap2diff ); fi;
 gap> chap3 := Filename( outdir, "_Chapter_AutoDoc_worksheets.xml" );;
 gap> chap3ref := Filename( ex_dir, "_Chapter_AutoDoc_worksheets.xml" );;
 gap> chap3diffout := Filename( outdir, "chap3.diff");;
@@ -59,4 +68,4 @@ gap> chap4good := chap4diff = Concatenation( "Files ", chap4ref, " and ", chap4,
 true
 gap> if not chap4good then Print( chap4diff ); fi;
 gap> STOP_TEST( "dogfood.tst", 10000 );
-## No point in testing chapters 1 or 2 unless/until they are converted to autodoc
+## No point in testing chapter 1 unless/until it is converted to autodoc
