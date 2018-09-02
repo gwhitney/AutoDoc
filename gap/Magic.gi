@@ -287,7 +287,17 @@ function( arg )
             if not IsBound( autodoc.scan_dirs ) then
                 autodoc.scan_dirs := [ ".", "gap", "lib", "examples", "examples/doc" ];
             fi;
-            Append( autodoc.files, AUTODOC_FindMatchingFiles(pkgdir, autodoc.scan_dirs, [ "g", "gi", "gd", "autodoc" ]) );
+            if not IsBound( autodoc.scan_suffixes ) then
+                autodoc.scan_suffixes := [ "g", "gi", "gd", "autodoc" ];
+            fi;
+            Append( autodoc.files, AUTODOC_FindMatchingFiles(pkgdir, autodoc.scan_dirs, autodoc.scan_suffixes ) );
+        fi;
+
+        if not IsBound( autodoc.follow_package ) then
+            autodoc.follow_package := false;
+        fi;
+        if autodoc.follow_package then
+            autodoc.follow_package := pkgdir;
         fi;
 
         # Make sure all of the files exist, making the file names absolute if
@@ -402,7 +412,7 @@ function( arg )
             AUTODOC_PROCESS_INTRO_STRINGS( autodoc.section_intros, tree );
         fi;
 
-        AutoDocScanFiles( autodoc.files, pkgname, tree );
+        AutoDocScanFiles( autodoc.files, autodoc.follow_package, pkgname, tree );
     fi;
 
     if is_worksheet then

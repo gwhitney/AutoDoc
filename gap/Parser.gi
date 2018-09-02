@@ -264,15 +264,14 @@ end );
 
 ##
 InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
-  function( filename_list, tree, default_chapter_data )
-    local flush_and_recover, scope_chapter_info, current_string_list,
-          Scan_for_Declaration_part, flush_and_prepare_for_item, current_line,
-          masked_current_line, filestream,
+  function( filename_list, package_name, follow_package, tree, default_chapter_data )
+    local current_item, flush_and_recover, scope_chapter_info, current_string_list,
+          Scan_for_Declaration_part, Scan_for_ReadPackage, flush_and_prepare_for_item, current_line, masked_current_line, filestream,
           level_scope, scope_group, scope_initial_args, read_example, command_function_record, autodoc_read_line,
-          current_command, was_declaration, filename, system_scope, groupnumber, chunk_list, rest_of_file_skipped,
+          current_command, was_declaration, filename, filename_insert_point, next_filename, system_scope, groupnumber, chunk_list, rest_of_file_skipped,
           active_node_stack, new_man_item, add_man_item, Reset, read_code, title_item, title_item_list, plain_text_mode,
           current_line_unedited,
-          ReadLineWithLineCount, Normalized_ReadLine, line_number, ErrorWithPos, create_title_item_function,
+          ReadLineWithLineCount, Normalized_ReadLine, line_number, AtPosString, ErrorWithPos, create_title_item_function,
           current_line_positition_for_filter, read_session_example,
           StackNonEmpty, StackEmpty, PopNode, PeekNode, PushNode, ResetStack;
     groupnumber := 0;
@@ -295,9 +294,10 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
         NormalizeWhitespace( string );
         return string;
     end;
+    AtPosString := {} -> Concatenation( "at ", filename, ":", String( line_number ) );
     ErrorWithPos := function(arg)
         local list;
-        list := Concatenation(arg, [ ",\n", "at ", filename, ":", line_number]);
+        list := Concatenation( arg, [ ",\n", AtPosString( ) ] );
         CallFuncList(Error, list);
     end;
     StackNonEmpty := {} -> Length( active_node_stack ) > 0;
@@ -550,6 +550,42 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
             return true;
         fi;
         return false;
+    end;
+    Scan_for_ReadPackage := function( )
+        local rpkg_position, paren_position, pkg_args;
+        rpkg_position := PositionSublist( masked_current_line, "ReadPackage" );
+        if rpkg_position = fail then return fail; fi;
+        current_line := current_line{[ rpkg_position + 11 .. Length( current_line ) ]};
+        current_line := StripBeginEnd( current_line, " " );
+        if current_line[ 1 ] <> '(' then
+            # Not really a function call, probably just a mention of
+            # ReadPackage, so skip silently
+            return fail;
+        fi;
+
+        paren_position := PositionSublist( current_line, ")" );
+        if paren_position = fail then
+            Info( InfoGAPDoc, 1, "ReadPackage without close paren ",
+                  AtPosString(), ", skipping.\n" );
+            return fail;
+        fi;
+        pkg_args := SplitString( current_line{[ 2 .. paren_position - 1 ]}, "," );
+        pkg_args := List( pkg_args, {s} -> StripBeginEnd( ReplacedString( s, "\"", "" ), " " ) );
+        if Length(pkg_args) > 2 then
+            Info( InfoGAPDoc, 1, "ReadPackage without > 2 args ",
+                  AtPosString(), ", skipping.\n" );
+            return fail;
+        fi;
+        if Length(pkg_args) = 2 then
+            if pkg_args[ 1 ] <> package_name then
+                Info( InfoGAPDoc, 1, "ReadPackage for different package ",
+                        pkg_args[ 1 ], " ", AtPosString(), ", skipping.\n" );
+                return fail;
+            fi;
+            return Filename( Directory( follow_package ), pkg_args[ 2 ] );
+        fi;
+        # Only one arg (the "not recommended" form)
+        return Filename( DirectoriesLibrary( "pkg" ), pkg_args[ 1 ] );
     end;
     read_code := function( )
         local code, temp_curr_line, comment_pos, before_comment;
@@ -1568,7 +1604,9 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
     rest_of_file_skipped := false;
     ##Now read the files.
     Info( InfoGAPDoc, 2, "AutoDoc scanning files: ", filename_list, "\n");
-    for filename in filename_list do
+    while Length( filename_list ) > 0 do
+        filename := Remove( filename_list, 1 );
+        filename_insert_point := 1;
         Reset();
         ## FIXME: Is this dangerous?
         if PositionSublist( filename, ".autodoc" ) <> fail then
@@ -1603,10 +1641,18 @@ InstallGlobalFunction( AutoDoc_Parser_ReadFiles,
             fi;
             current_line := current_command[ 2 ];
             masked_current_line := current_command[ 3 ];
+            was_declaration := false;
             if autodoc_read_line = true or autodoc_read_line = fail then
                 was_declaration := Scan_for_Declaration_part( );
                 if not was_declaration and autodoc_read_line <> fail then
                     autodoc_read_line := false;
+                fi;
+            fi;
+            if follow_package <> false and not was_declaration then
+                next_filename := Scan_for_ReadPackage( );
+                if next_filename <> fail then
+                    Add( filename_list, next_filename, filename_insert_point );
+                    filename_insert_point := filename_insert_point + 1;
                 fi;
             fi;
         od;

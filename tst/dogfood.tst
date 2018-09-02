@@ -29,6 +29,12 @@ true
 gap> mdf := Filename( DirectoriesPackageLibrary( "AutoDoc", "")[ 1 ], "makedoc.g" );;
 gap> Read(mdf);
 gap> autodoc_args_rec.dir := outdir;;
+gap> autodoc_args_rec.autodoc.scan_dirs := ["."];
+[ "." ]
+gap> autodoc_args_rec.autodoc.scan_suffixes := ["g"];
+[ "g" ]
+gap> autodoc_args_rec.autodoc.follow_package := true;
+true
 gap> docdir := DirectoriesPackageLibrary( "AutoDoc", "doc" )[ 1 ];;
 gap> for fn in [ "Tutorials.xml", "bib.xml" ] do
 > contents := ReadAll( InputTextFile( Filename( docdir, fn ) ) );

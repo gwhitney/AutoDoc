@@ -237,10 +237,40 @@ order not relevant to the flow of your documentation.
 <Mark><A>scan_dirs</A></Mark>
 <Item>
 A list of subdirectories of the package directory (given as relative paths)
-which &AutoDoc; then scans for .gi, .gd, .g, and .autodoc files; all of these files
+which &AutoDoc; then scans for files with suffixes in the
+<A>scan_suffixes</A> list, see below; all of these files
 are then scanned for &AutoDoc; documentation comments.
 <Br/>
 <E>Default value: <C>[ ".", "gap", "lib", "examples", "examples/doc" ]</C>.</E>
+</Item>
+<Mark><A>scan_suffixes</A></Mark>
+<Item>
+When &AutoDoc; is scanning a directory (see <A>scan_dirs</A>
+just above), any file with a suffix on this list will be scanned
+for &AutoDoc; documentation commands.
+<Br/>
+<E>Default value: <C>[ "g", "gi", "gd", "autodoc" ]</C>.</E>
+</Item>
+<Mark><A>follow_package</A></Mark>
+<Item>
+If this is set to true, then whenever &AutoDoc;
+is scanning a file and encounters a <C>ReadPackage()</C> &GAP;
+call, it will schedule the referenced file to be scanned by
+&AutoDoc; as well. It schedules the file <E>after</E> any
+from earlier <C>ReadPackage</C> calls in this same file, but
+<E>before</E> any other files that were waiting to be read when
+reading of the current file commenced. This mimics (but does not
+quite exactly reproduce) the order in which &GAP;
+reads the code (the difference being that &GAP;
+interrupts the reading of the current file at the point of
+<C>ReadPackage()</C> and then returns to it when the referenced
+file is done, whereas &AutoDoc; doesn't begin the referenced file
+until it finishes the current one). For example, if you set
+<C>scan_dirs := ["."], scan_suffixes := ["g"], follow_package := true</C>
+then &AutoDoc; will scan the code of the package much as &GAP;
+does, which can lend a more natural order to the documentation.
+<Br/>
+<E>Default value: <C>false</C>.</E>
 </Item>
 <Mark><A>level</A></Mark>
 <Item>
